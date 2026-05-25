@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Phân Tích Ảnh - Trợ lý Tái chế AI</title>
+    <link rel="stylesheet" href="/static/style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        .pipeline-container {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            padding: 20px;
+            height: 100%;
+            overflow-y: auto;
+        }
+        .upload-section {
+            text-align: center;
+            padding: 30px;
+            border: 2px dashed rgba(255, 255, 255, 0.3);
+            border-radius: 15px;
+            background: rgba(255, 255, 255, 0.05);
+            transition: all 0.3s ease;
+        }
+        .upload-section:hover {
+            border-color: rgba(255, 255, 255, 0.6);
+            background: rgba(255, 255, 255, 0.1);
+        }
+        .upload-btn-custom {
+            padding: 10px 20px;
+            background: linear-gradient(135deg, #00f2fe 0%, #4facfe 100%);
+            border: none;
+            border-radius: 8px;
+            color: white;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s;
+            margin-top: 15px;
+        }
+        .upload-btn-custom:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(79, 172, 254, 0.4);
+        }
+        .preview-img {
+            max-width: 100%;
+            max-height: 300px;
+            border-radius: 10px;
+            margin-top: 20px;
+            display: none;
+        }
+        .process-btn {
+            padding: 12px 24px;
+            background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);
+            border: none;
+            border-radius: 8px;
+            color: #1a1a1a;
+            font-weight: bold;
+            font-size: 16px;
+            cursor: pointer;
+            margin-top: 20px;
+            display: none;
+            width: 100%;
+            transition: all 0.2s;
+        }
+        .process-btn:hover {
+            box-shadow: 0 5px 15px rgba(67, 233, 123, 0.4);
+            transform: translateY(-2px);
+        }
+        
+        /* Grid for pipeline images */
+        .results-section {
+            display: none;
+        }
+        .section-title {
+            margin: 20px 0 15px 0;
+            padding-bottom: 10px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        .yolo-result img {
+            width: 100%;
+            border-radius: 12px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+        }
+        .pipeline-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 15px;
+            margin-top: 15px;
+        }
+        .pipeline-card {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 10px;
+            padding: 10px;
+            text-align: center;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        .pipeline-card img {
+            width: 100%;
+            border-radius: 8px;
+            aspect-ratio: 1/1;
+            object-fit: cover;
+        }
+        .pipeline-card h4 {
+            margin: 10px 0 0 0;
+            font-size: 14px;
+            color: #e0e0e0;
+        }
+        .loader {
+            display: none;
+            text-align: center;
+            margin: 20px 0;
+        }
+        .loader i {
+            font-size: 2rem;
+            color: #4facfe;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        .nav-links {
+            margin-top: 10px;
+        }
+        .nav-links a {
+            color: #4facfe;
+            text-decoration: none;
+            font-size: 14px;
+        }
+        .nav-links a:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+    <div class="background-shapes">
+        <div class="shape shape-1"></div>
+        <div class="shape shape-2"></div>
+        <div class="shape shape-3"></div>
+    </div>
+
+    <div class="app-container glass-panel" style="max-width: 900px;">
+        <header class="app-header">
+            <div class="header-title">
+                <div class="icon-container">
+                    <i class="fa-solid fa-microchip"></i>
+                </div>
+                <div>
+                    <h1>Hệ thống Computer Vision</h1>
+                    <span class="status"><span class="pulse"></span> Phân tích Pipeline</span>
+                </div>
+            </div>
+        </header>
+
+        <main class="pipeline-container">
+            <div class="upload-section">
+                <i class="fa-solid fa-cloud-arrow-up" style="font-size: 48px; color: rgba(255,255,255,0.5); margin-bottom: 15px;"></i>
+                <h3>Tải ảnh lên để phân tích</h3>
+                <p style="color: #aaa; font-size: 14px; margin-top: 5px;">Hệ thống sẽ chạy nhận diện vật thể và xử lý ảnh chi tiết</p>
+                <input type="file" id="image-upload-pipeline" accept="image/*" style="display: none;">
+                <button class="upload-btn-custom" onclick="document.getElementById('image-upload-pipeline').click()">
+                    Chọn ảnh
+                </button>
+                <div>
+                    <img id="image-preview" class="preview-img" src="" alt="Preview">
+                </div>
+                <button id="process-btn" class="process-btn">
+                    <i class="fa-solid fa-wand-magic-sparkles"></i> Phân tích ngay
+                </button>
+            </div>
+
+            <div id="loader" class="loader">
+                <i class="fa-solid fa-spinner"></i>
+                <p style="margin-top: 10px; color: #4facfe;">Hệ thống đang xử lý, vui lòng chờ...</p>
+            </div>
+
+            <div id="results-section" class="results-section">
+                <h3 class="section-title"><i class="fa-solid fa-crosshairs"></i> Nhận diện vật thể (YOLO + MobileNet)</h3>
+                <div class="yolo-result">
+                    <img id="yolo-img" src="" alt="YOLO Result">
+                </div>
+
+                <h3 class="section-title"><i class="fa-solid fa-layer-group"></i> Pipeline Xử lý & Phân đoạn ảnh</h3>
+                <div class="pipeline-grid" id="pipeline-grid">
+                    <!-- Cards will be injected here -->
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script src="/static/script.js"></script>
+</body>
+</html>
